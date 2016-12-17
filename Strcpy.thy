@@ -2,57 +2,34 @@ theory Strcpy
 imports "$PWD/CString" "$PWD/Strlen"
 begin
 
-value "takeWhile (\<lambda>x. x \<noteq> 0) [1,3,4,5,6::int]"
+(* Author: Ivan Yakimov, ivan.yakimov.research@yandex.ru *)
 
 definition strcpy :: "string \<Rightarrow> string \<Rightarrow> string option" where
 "strcpy xs ys = (let n = the (strlen ys) in
   (if isCString ys \<and> n < int (size xs) 
-    then Some ((takeCString ys) @ [terminator] @ drop (nat n + 1) xs)  
+    then Some ((takeFullCString ys) @ drop (nat n + 1) xs)  
     else None))"
 
 lemma strcpy_simp[simp]: "strcpy xs ys = (let n = the (strlen ys) in
   (if isCString ys \<and> n < int (size xs) 
-    then Some ((takeCString ys) @ [terminator] @ drop (nat n + 1) xs)  
+    then Some ((takeFullCString ys) @ drop (nat n + 1) xs)  
     else None))" by (simp add: strcpy_def)
-    
-lemma isCString_tail[simp]: "isCString ys \<Longrightarrow> takeCString ((takeCString ys) @ [terminator] @ ws) = takeCString ys" 
+
+lemma strcpy_nil1[simp]: 
+ "strcpy xs [] = None" by auto
+lemma strcpy_nil2[simp]: 
+ "strcpy [] xs = None" by auto
+lemma strcpy_none1[simp]: 
+ "\<not>isCString ys \<Longrightarrow> strcpy xs ys = None" by auto
+lemma strcpy_none2[simp]: 
+ "\<lbrakk>the (strlen ys) \<ge> int (size xs)\<rbrakk> \<Longrightarrow> strcpy xs ys = None" by auto
+lemma strcpy_exists1[simp]:
+ "\<lbrakk>isCString ys; the (strlen ys) < int (size xs)\<rbrakk> \<Longrightarrow> \<exists>zs. strcpy xs ys = zs" by auto 
+lemma strcpy_exists2[simp]:
+ "isCString ys \<Longrightarrow> nat (the (strlen ys)) < size xs \<Longrightarrow> \<exists>ws. the (strcpy xs ys) = (takeFullCString ys) @ ws"
  by (induct ys) auto
- 
-lemma "\<lbrakk>isCString ys; the (strlen ys) < int (size xs)\<rbrakk>
-\<Longrightarrow> the (strcpy xs ys) = ((takeCString ys) @ [terminator] @ drop (nat (the (strlen ys)) + 1) xs)"
- by simp
- 
-lemma "the (strcpy xs ys) = ((takeCString ys) @ [terminator] @ drop (nat (the (strlen ys)) + 1) xs)
- \<Longrightarrow> the (strcpy xs ys) = takeCString ys"
- apply (induct ys)
- apply auto
-    
-value "let   ws = [Char Nibble0 Nibble0];
-    ys = [Char Nibble0 Nibble0]
-  in 
-  takeCString (ys @ ws)"
-
-lemma strcpy_nil1[simp]: "strcpy xs [] = None" by auto
-lemma strcpy_nil2[simp]: "strcpy [] xs = None" by auto
-lemma strcpy_none1[simp]: "\<not>isCString ys \<Longrightarrow> strcpy xs ys = None" by auto
-
-lemma strcpy_none2[simp]: assumes s: "the (strlen ys) \<ge> int (size xs)" shows "strcpy xs ys = None"
-proof -
- have "\<not>(the (strlen ys) < int (size xs))" using s by auto
- thus "strcpy xs ys = None" by simp
-qed
-
-lemma strcpy_exists[simp]: "\<lbrakk>isCString ys; the (strlen ys) < int (size xs)\<rbrakk> \<Longrightarrow> \<exists>zs. strcpy xs ys = zs" by auto 
-
-lemma "\<lbrakk>isCString ys; the (strlen ys) < int (size xs)\<rbrakk>
-\<Longrightarrow> takeCString (the (strcpy xs ys)) = takeCString ys"
- 
-
-lemma "\<lbrakk>isCString ys; the (strlen ys) < int (size xs)\<rbrakk> \<Longrightarrow> takeCString (the (strcpy xs ys)) = takeCString ys" 
- apply (induct ys)
- apply auto
-oops
-
-value "strcpy str_hello str_el"
+lemma strcpy_exists3[simp]:
+ "\<lbrakk>isCString ys; nat (the (strlen ys)) < size xs\<rbrakk> \<Longrightarrow> length (the (strcpy xs ys)) = size xs"
+ by (induct xs) auto
     
 end
