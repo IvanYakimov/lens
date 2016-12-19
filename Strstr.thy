@@ -2,10 +2,7 @@ theory Strstr
 imports Main "$PWD/Strlen" "$PWD/CString" List
 begin
 
-(* Author: Ivan Yakimov, ivan.yakimov.research@yandex.ru *)
-
-value "take (length [1,2]) [1::int,2,3,4]" 
- 
+(* Author: Ivan Yakimov, ivan.yakimov.research@yandex.ru *) 
 (* helper for strstr *)
 fun listList :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 "listList [] _ = []" |
@@ -64,28 +61,12 @@ lemma "\<lbrakk>isCString ys;
  
 lemma "\<lbrakk>\<not> (isCString ys) \<or> (the (strlen ys) > n)\<rbrakk> \<Longrightarrow> strnstr xs ys n = None"
  by auto
-
-(* EXPERIMENT *)
-(* TODO: *)
-fun splitStr :: "nat \<Rightarrow>'a list \<Rightarrow> 'a list list" where
-"splitStr 0 [] = [[]]" |
-"splitStr n [] = [[]]" |
-"splitStr n (x#xs) = (let l = length (x#xs); s = take n (x#xs) in
-  (if l < n
-   then [[]]
-   else s # (splitStr n xs)))"
-   
-value "splitStr 0 [1,2,3,4,4]"
-value "splitStr 3 []"
-value "splitStr 3 [1,2,3,4,5,6,6::int]"
    
 experiment
 begin
- (* TODO: *)
- lemma "ys \<notin> set (sublists xs) \<Longrightarrow> listList xs ys = []"
-  apply (induct xs)
-   apply auto
- oops
+(* TODO: *)
+lemma "ys \<notin> set (sublists xs) \<Longrightarrow> listList xs ys = []"
+oops
 end
   
 end

@@ -9,11 +9,12 @@ definition strcpy :: "string \<Rightarrow> string \<Rightarrow> string option" w
   (if isCString ys \<and> n < int (size xs) 
     then Some ((takeFullCString ys) @ drop (nat n + 1) xs)  
     else None))"
-
-lemma strcpy_simp[simp]: "strcpy xs ys = (let n = the (strlen ys) in
+lemma strcpy_simp[simp]: 
+"strcpy xs ys = (let n = the (strlen ys) in
   (if isCString ys \<and> n < int (size xs) 
     then Some ((takeFullCString ys) @ drop (nat n + 1) xs)  
-    else None))" by (simp add: strcpy_def)
+    else None))" 
+ by (simp add: strcpy_def)
 
 lemma strcpy_nil1[simp]: 
  "strcpy xs [] = None" by auto
