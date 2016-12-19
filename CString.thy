@@ -35,18 +35,24 @@ definition takeCLine :: "string \<Rightarrow> string" where
 "takeCLine xs = (if isCLine xs then takeWhile (\<lambda>x. x \<noteq> terminator \<and> x \<noteq> endl) xs else [])"
 lemma takeCLine_simp[simp]:"takeCLine xs = (if isCLine xs then takeWhile (\<lambda>x. x \<noteq> terminator \<and> x \<noteq> endl) xs else [])" by (simp add: takeCLine_def)
 
-lemma "isCString [] = False" by simp
-
-(* < - - TODO: structured proof: = instead of \<Longrightarrow> *)
-lemma my2[simp]:"(\<And>x. x \<in> set xs \<Longrightarrow> x \<noteq> terminator) \<Longrightarrow> (\<not> isCString xs)"
- by (induct xs) auto
-lemma my10[simp]:"\<not> isCString xs \<Longrightarrow> (\<And>x. x \<in> set xs \<Longrightarrow> x \<noteq> terminator)"
- by (induct xs) auto
-
-lemma my1[simp]:"\<not> isCString xs \<Longrightarrow> List.find (\<lambda>x. x = terminator) xs = None"
+lemma isCString_nil[simp]:
+"isCString [] = False" 
+ by simp
+ 
+lemma isCString_bad[simp]:
+"\<forall>x \<in> set xs. x \<noteq> terminator \<equiv> \<not> isCString xs"
  by (induct xs) auto
  
-lemma my3[simp]:"(\<And>x. x \<in> set xs \<Longrightarrow> x \<noteq> terminator) \<Longrightarrow> (List.find (\<lambda>a. a = terminator) xs = None)"
+lemma isCString_well[simp]: 
+"\<exists>x \<in> set xs. x = terminator \<equiv> isCString xs"
+ by (induct xs) auto
+ 
+(* < - - TODO: structured proof: = instead of \<Longrightarrow> *)
+
+lemma isCString_find[simp]:"\<not> isCString xs \<Longrightarrow> List.find (\<lambda>x. x = terminator) xs = None"
+ by (induct xs) auto
+ 
+lemma find_term[simp]:"(\<forall> x \<in> set xs. x \<noteq> terminator) \<Longrightarrow> (List.find (\<lambda>a. a = terminator) xs = None)"
  by (induct xs) auto
 
 lemma my5[simp]:" List.find (\<lambda>a. a = terminator) xs = None \<Longrightarrow> (\<And>x. x \<in> set xs \<Longrightarrow> x \<noteq> terminator)"
