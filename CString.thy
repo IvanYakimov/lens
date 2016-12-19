@@ -10,9 +10,17 @@ definition terminator :: "char" where
 "terminator = Char Nibble0 Nibble0"
 lemma terminator_simp[simp]:"terminator = Char Nibble0 Nibble0" by (simp add: terminator_def)
 
+definition endl :: "char" where
+"endl = Char Nibble0 NibbleA"
+lemma endl_simp[simp]:"endl = Char Nibble0 NibbleA" by (simp add: endl_def)
+
 definition isCString :: "string \<Rightarrow> bool" where 
 "isCString xs = (terminator \<in> set xs)"
 lemma isCString_simp[simp]:"isCString xs = (terminator \<in> set xs)" by (simp add: isCString_def)
+
+definition isCLine :: "string \<Rightarrow> bool" where
+"isCLine xs = (terminator \<in> set xs \<or> endl \<in> set xs)"
+lemma isCLine_simp[simp]:"isCLine xs = (terminator \<in> set xs \<or> endl \<in> set xs)" by (simp add: isCLine_def)
 
 definition takeCString :: "char list \<Rightarrow> char list" where
 "takeCString xs = (if isCString xs then takeWhile (\<lambda>x. x \<noteq> terminator) xs else [])"
@@ -22,6 +30,10 @@ lemma takeCString_simp[simp]:
 definition takeFullCString :: "string \<Rightarrow> string" where
 "takeFullCString xs = (if isCString xs then takeCString xs @ [terminator] else [])"
 lemma takeFullCString_simp[simp]: "takeFullCString xs = (if isCString xs then takeCString xs @ [terminator] else [])" by (simp add: takeFullCString_def)
+
+definition takeCLine :: "string \<Rightarrow> string" where
+"takeCLine xs = (if isCLine xs then takeWhile (\<lambda>x. x \<noteq> terminator \<and> x \<noteq> endl) xs else [])"
+lemma takeCLine_simp[simp]:"takeCLine xs = (if isCLine xs then takeWhile (\<lambda>x. x \<noteq> terminator \<and> x \<noteq> endl) xs else [])" by (simp add: takeCLine_def)
 
 lemma "isCString [] = False" by simp
 
