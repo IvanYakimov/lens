@@ -23,15 +23,14 @@ definition strstr :: "string \<Rightarrow> string \<Rightarrow> string option" w
  (if (isCString xs \<and> isCString ys) \<and> (the (strlen ys) < the (strlen xs)) 
   then Some (listList xs (takeCString ys)) 
   else None)"
-  
 lemma strstr_simp[simp]:"strstr xs ys = 
  (if (isCString xs \<and> isCString ys) \<and> (the (strlen ys) < the (strlen xs)) 
   then Some (listList xs (takeCString ys)) 
   else None)" by (simp add: strstr_def)
   
+(* TODO: check the strnstr definition *)
 definition strnstr :: "string \<Rightarrow> string \<Rightarrow> int \<Rightarrow> string option" where
 "strnstr xs ys n = (if \<not> isCString ys then None else (if the (strlen ys) \<le> n then strstr xs ys else None))"
-
 lemma strnstr_simp[simp]: 
 "strnstr xs ys n = (if \<not> isCString ys then None else (if the (strlen ys) \<le> n then strstr xs ys else None))"
  by (simp add: strnstr_def)
@@ -61,12 +60,5 @@ lemma "\<lbrakk>isCString ys;
  
 lemma "\<lbrakk>\<not> (isCString ys) \<or> (the (strlen ys) > n)\<rbrakk> \<Longrightarrow> strnstr xs ys n = None"
  by auto
-   
-experiment
-begin
-(* TODO: *)
-lemma "ys \<notin> set (sublists xs) \<Longrightarrow> listList xs ys = []"
-oops
-end
-  
+    
 end

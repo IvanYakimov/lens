@@ -1,5 +1,5 @@
 theory Strlen
-imports Main String List "$PWD/CString" "$PWD/ListHelper"
+imports Main String List "$PWD/CString" "$PWD/ListHelper" 
 begin
 
 (* Author: Ivan Yakimov, e-mail: ivan.yakimov.research@yandex.ru *)
@@ -11,7 +11,7 @@ lemma strlen_helper_simp[simp]:
 "strlen_helper xs = int (length (takeCString xs))"
 by (simp add: strlen_helper_def) 
 
-definition strlen :: "char list \<Rightarrow> int option" where
+definition strlen :: "string \<Rightarrow> int option" where
 "strlen xs = 
  (if \<not> (isCString xs) 
   then None
@@ -23,7 +23,7 @@ lemma strlen_simp[simp]:
   else Some (strlen_helper xs))"
  by (simp add: strlen_def)
 
-definition strnlen :: "char list \<Rightarrow> int \<Rightarrow> int option" where
+definition strnlen :: "string \<Rightarrow> int \<Rightarrow> int option" where
 "strnlen xs n= 
  (if \<not>isCString xs 
   then None
@@ -56,8 +56,11 @@ lemma strlen_gt[simp]: "\<lbrakk>isCString xs; x \<noteq> terminator\<rbrakk> \<
 (* Let xs be a null-terminated string and let x be some not-null symbol.
 The 'strlen' of string x#xs is equal to 'strlen' of string xs increased by one. *)
 lemma strlen_inc[simp]: "\<lbrakk>isCString xs; x \<noteq> terminator\<rbrakk> \<Longrightarrow> the (strlen (x # xs)) = the (strlen (xs)) + 1"
- by (induct xs) auto
-
+ by (induct xs) auto 
+ 
 (* STRNLEN PROPS *)
-  
+(* TODO: *)
+export_code strlen strnlen in "Haskell"
+
+
 end

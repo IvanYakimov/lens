@@ -12,4 +12,6 @@ lemma "\<lbrakk>\<not> isCLine xs \<or> \<not> isCLine ys\<rbrakk> \<Longrightar
 lemma "\<lbrakk>isCLine xs; isCLine ys; takeCLine xs \<noteq> takeCLine ys\<rbrakk> \<Longrightarrow> \<not> sysfs_streq xs ys" by(induct xs) auto
 lemma "\<lbrakk>isCLine xs; isCLine ys; takeCLine xs = takeCLine ys\<rbrakk> \<Longrightarrow> sysfs_streq xs ys" by(induct xs) auto
 
+export_code sysfs_streq in "Haskell"
+
 end
