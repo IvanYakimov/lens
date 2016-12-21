@@ -64,32 +64,58 @@ lemma isCString_inc[simp]:
 "\<lbrakk>isCString xs; x \<noteq> terminator\<rbrakk> \<Longrightarrow> isCString (x#xs)"
  by (induct xs) auto
 
-lemma isCString_app[simp]:
-"\<lbrakk>\<not> isCString xs; isCString ys\<rbrakk> \<Longrightarrow> isCString (xs @ ys)"
- by (induct xs) auto
+lemma isCString_app1[simp]:
+"isCString xs \<or> isCString ys \<Longrightarrow> isCString (xs @ ys)"
+ by auto
  
-lemma isCString_find[simp]:"\<not> isCString xs \<equiv> List.find (\<lambda>x. x = terminator) xs = None"
+lemma isCString_app2[simp]:
+"isCString (xs @ ys) = isCString (ys @ xs)" 
+ by auto
+ 
+lemma isCString_find[simp]:
+"\<not> isCString xs \<equiv> List.find (\<lambda>x. x = terminator) xs = None"
  by (induct xs) auto
 
 (* ------------------------------------ takeCString ---------------------------------- *)
 lemma takeCString_nil[simp]:
-"takeCString [] = []" by simp
+"takeCString [] = []" 
+ by simp
+
 lemma takeCString_bad[simp]:
-"\<not>(isCString xs) \<Longrightarrow> takeCString xs = []" by simp
-lemma takeCString_inc[simp]:
-"\<lbrakk>isCString xs; x \<noteq> terminator\<rbrakk> \<Longrightarrow> x # (takeCString xs) = takeCString (x # xs)" by (induct xs) auto
+"\<not>(isCString xs) \<Longrightarrow> takeCString xs = []" 
+ by simp
+
 lemma takeString_app1[simp]:
-"isCString xs \<Longrightarrow> takeCString xs = takeCString (xs @ ys)" by (induct xs) auto
-lemma takeCString_app2[simp]:
-"\<lbrakk>\<not> isCString xs; isCString ys\<rbrakk> \<Longrightarrow> takeCString (xs @ ys) = xs @ takeCString ys" by (induct xs) auto
-
-lemma takeFullCString_1[simp]:"isCString xs \<Longrightarrow> takeFullCString xs = (takeCString xs) @ [terminator]" by auto
-lemma takeFullCString_2[simp]:"\<not> isCString xs \<Longrightarrow> takeFullCString xs = takeCString xs" by auto
-
-lemma takeBuff_2[simp]: "isCString xs \<Longrightarrow> takeBuff xs = takeCString xs" by auto
-lemma takeBuff_1[simp]: "\<not> isCString xs \<Longrightarrow> takeBuff xs = xs" by auto
+"isCString xs \<Longrightarrow> takeCString (xs @ ys) = takeCString xs" 
+ by (induct xs) auto
  
-(* support *)
+lemma takeCString_inc[simp]:
+"\<lbrakk>isCString xs; x \<noteq> terminator\<rbrakk> \<Longrightarrow> takeCString (x # xs) = x # (takeCString xs)" 
+ by (induct xs) auto
+
+lemma takeCString_app2[simp]:
+"\<lbrakk>\<not> isCString xs; isCString ys\<rbrakk> \<Longrightarrow> takeCString (xs @ ys) = xs @ (takeCString ys)" 
+ by (induct xs) auto
+
+(* ------------------------ takeFullCString ---------------------------- *)
+lemma takeFullCString_1[simp]:
+"isCString xs \<Longrightarrow> takeFullCString xs = (takeCString xs) @ [terminator]" 
+ by auto
+
+lemma takeFullCString_2[simp]:
+"\<not> isCString xs \<Longrightarrow> takeFullCString xs = takeCString xs" 
+ by auto
+
+(* -------------------------- takeBuff ---------------------------- *)
+lemma takeBuff_2[simp]: 
+"isCString xs \<Longrightarrow> takeBuff xs = takeCString xs" 
+ by auto
+
+lemma takeBuff_1[simp]: 
+"\<not> isCString xs \<Longrightarrow> takeBuff xs = xs" 
+ by auto
+ 
+(* --------------- support ----------------- *)
 definition str_hello :: "string" where
 "str_hello = [CHR ''H'', CHR ''e'', CHR ''l'', CHR ''l'', CHR ''o'', CHR ''!'', terminator]"
 
@@ -102,15 +128,15 @@ definition bad_str :: "string" where
 definition empty_str :: "string" where
 "empty_str = [terminator]"
 
-(* TODO: *)
+(* ------------------------------------------ EXPERIMENTAL -------------------------------------------- *)
 experiment begin
 
-lemma my5[simp]:" List.find (\<lambda>a. a = terminator) xs = None \<Longrightarrow> (\<And>x. x \<in> set xs \<Longrightarrow> x \<noteq> terminator)"
+theorem my5[simp]:" List.find (\<lambda>a. a = terminator) xs = None \<Longrightarrow> (\<And>x. x \<in> set xs \<Longrightarrow> x \<noteq> terminator)"
  apply (induct xs)
  apply auto
 oops
  
-lemma my4:"List.find (\<lambda>x. x = terminator) xs = None \<Longrightarrow> \<not> isCString xs"
+theorem my4:"List.find (\<lambda>x. x = terminator) xs = None \<Longrightarrow> \<not> isCString xs"
  apply (induct xs) 
  apply auto
 oops
@@ -118,7 +144,7 @@ oops
 thm notI
 thm ccontr
 
-lemma "\<not> (\<forall>xs. \<not> isCString xs)"
+theorem "\<not> (\<forall>xs. \<not> isCString xs)"
 proof (rule ccontr)
  assume P: "\<not> \<not> (\<forall>xs. \<not> isCString xs)"
  from P have 0: "\<forall>xs. \<not> isCString xs" by simp
@@ -127,18 +153,18 @@ proof (rule ccontr)
  from 1 show "False" 
 oops
 
-lemma "\<not> isCString xs \<equiv> \<forall>xs. \<not> isCString xs"
+theorem "\<not> isCString xs \<equiv> \<forall>xs. \<not> isCString xs"
 nitpick
 oops
 
-lemma 
+theorem
 "\<not> isCString xs \<Longrightarrow> False"
 apply (induct xs)
 apply simp_all
 quickcheck
 oops
 
-lemma
+theorem
 "\<exists>xs. isCString xs"
 proof (rule ccontr)
  assume 0:"\<not> (\<exists>xs. isCString xs)"
@@ -151,7 +177,7 @@ oops
 
 thm ccontr
 
-lemma
+theorem
 "\<not> (\<exists>xs. isCString xs)"
 proof (rule ccontr)
  assume 28:"\<not> \<not> (\<exists>xs. isCString xs)"
