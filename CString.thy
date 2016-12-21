@@ -4,41 +4,46 @@ begin
 
 (* Author: Ivan Yakimov, e-mail: ivan.yakimov.research@yandex.ru *)
 
+(* --------------------------------------- Definitions ------------------------------------- *)
+
 definition terminator :: "char" where 
 "terminator = Char Nibble0 Nibble0"
-lemma terminator_simp[simp]:"terminator = Char Nibble0 Nibble0" by (simp add: terminator_def)
 
 definition endl :: "char" where
 "endl = Char Nibble0 NibbleA"
-lemma endl_simp[simp]:"endl = Char Nibble0 NibbleA" by (simp add: endl_def)
 
 definition isCString :: "string \<Rightarrow> bool" where 
 "isCString xs = (terminator \<in> set xs)"
-lemma isCString_simp[simp]:"isCString xs = (terminator \<in> set xs)" by (simp add: isCString_def)
 
 definition isCLine :: "string \<Rightarrow> bool" where
 "isCLine xs = (terminator \<in> set xs \<or> endl \<in> set xs)"
-lemma isCLine_simp[simp]:"isCLine xs = (terminator \<in> set xs \<or> endl \<in> set xs)" by (simp add: isCLine_def)
 
 definition takeCString :: "char list \<Rightarrow> char list" where
 "takeCString xs = (if isCString xs then takeWhile (\<lambda>x. x \<noteq> terminator) xs else [])"
-lemma takeCString_simp[simp]: 
-"takeCString xs = (if isCString xs then takeWhile (\<lambda>x. x \<noteq> terminator) xs else [])"  by (simp add: takeCString_def)
 
 definition takeBuff :: "string \<Rightarrow> string" where
 "takeBuff xs = (if isCString xs then takeCString xs else xs)"
-lemma takeBuff_simp[simp]:
-"takeBuff xs = (if isCString xs then takeCString xs else xs)"
- by (simp add: takeBuff_def) 
 
 definition takeFullCString :: "string \<Rightarrow> string" where
 "takeFullCString xs = (if isCString xs then takeCString xs @ [terminator] else [])"
-lemma takeFullCString_simp[simp]: "takeFullCString xs = (if isCString xs then takeCString xs @ [terminator] else [])" by (simp add: takeFullCString_def)
 
 definition takeCLine :: "string \<Rightarrow> string" where
 "takeCLine xs = (if isCLine xs then takeWhile (\<lambda>x. x \<noteq> terminator \<and> x \<noteq> endl) xs else [])"
-lemma takeCLine_simp[simp]:"takeCLine xs = (if isCLine xs then takeWhile (\<lambda>x. x \<noteq> terminator \<and> x \<noteq> endl) xs else [])" by (simp add: takeCLine_def)
+ 
+(* -------------------------------- Simplification Rules --------------------------- *)
 
+lemma cstring_simps[simp]:
+"terminator = Char Nibble0 Nibble0"
+"endl = Char Nibble0 NibbleA"
+"isCString xs = (terminator \<in> set xs)" 
+"isCLine xs = (terminator \<in> set xs \<or> endl \<in> set xs)" 
+"takeCString xs = (if isCString xs then takeWhile (\<lambda>x. x \<noteq> terminator) xs else [])"
+"takeFullCString xs = (if isCString xs then takeCString xs @ [terminator] else [])"
+"takeCLine xs = (if isCLine xs then takeWhile (\<lambda>x. x \<noteq> terminator \<and> x \<noteq> endl) xs else [])"
+"takeBuff xs = (if isCString xs then takeCString xs else xs)"
+by (simp_all add: terminator_def endl_def isCString_def isCLine_def takeCString_def takeCLine_def takeBuff_def takeFullCString_def)
+
+(* -------------------------- isCString ------------------------ *)
 lemma isCString_nil[simp]:
 "isCString [] = False" 
  by simp
@@ -51,33 +56,32 @@ lemma isCString_well[simp]:
 "\<exists>x \<in> set xs. x = terminator \<equiv> isCString xs"
  by (induct xs) auto
  
-(* < - - TODO: structured proof: = instead of \<Longrightarrow> *)
-
-lemma isCString_find[simp]:"\<not> isCString xs \<Longrightarrow> List.find (\<lambda>x. x = terminator) xs = None"
- by (induct xs) auto
- 
-lemma find_term[simp]:"(\<forall> x \<in> set xs. x \<noteq> terminator) \<Longrightarrow> (List.find (\<lambda>a. a = terminator) xs = None)"
+lemma isCString_term[simp]:
+"\<lbrakk>isCString xs; x \<notin> set xs\<rbrakk> \<Longrightarrow> x \<noteq> terminator"
  by (induct xs) auto
 
-lemma my5[simp]:" List.find (\<lambda>a. a = terminator) xs = None \<Longrightarrow> (\<And>x. x \<in> set xs \<Longrightarrow> x \<noteq> terminator)"
- apply (induct xs)
- apply auto
-oops
- 
-lemma my4:"List.find (\<lambda>x. x = terminator) xs = None \<Longrightarrow> \<not> isCString xs"
- apply (induct xs) 
- apply auto
-oops
-(* - - > *)
+lemma isCString_inc[simp]:
+"\<lbrakk>isCString xs; x \<noteq> terminator\<rbrakk> \<Longrightarrow> isCString (x#xs)"
+ by (induct xs) auto
 
+lemma isCString_app[simp]:
+"\<lbrakk>\<not> isCString xs; isCString ys\<rbrakk> \<Longrightarrow> isCString (xs @ ys)"
+ by (induct xs) auto
+ 
+lemma isCString_find[simp]:"\<not> isCString xs \<equiv> List.find (\<lambda>x. x = terminator) xs = None"
+ by (induct xs) auto
+
+(* ------------------------------------ takeCString ---------------------------------- *)
 lemma takeCString_nil[simp]:
 "takeCString [] = []" by simp
 lemma takeCString_bad[simp]:
 "\<not>(isCString xs) \<Longrightarrow> takeCString xs = []" by simp
 lemma takeCString_inc[simp]:
-"\<lbrakk>isCString xs; x \<noteq> terminator\<rbrakk> \<Longrightarrow> x # (takeCString xs) = takeCString (x # xs)" by (induct xs) auto 
-lemma takeString_app[simp]:
- "isCString xs \<Longrightarrow> takeCString xs = takeCString (xs @ ys)" by (induct xs) auto
+"\<lbrakk>isCString xs; x \<noteq> terminator\<rbrakk> \<Longrightarrow> x # (takeCString xs) = takeCString (x # xs)" by (induct xs) auto
+lemma takeString_app1[simp]:
+"isCString xs \<Longrightarrow> takeCString xs = takeCString (xs @ ys)" by (induct xs) auto
+lemma takeCString_app2[simp]:
+"\<lbrakk>\<not> isCString xs; isCString ys\<rbrakk> \<Longrightarrow> takeCString (xs @ ys) = xs @ takeCString ys" by (induct xs) auto
 
 lemma takeFullCString_1[simp]:"isCString xs \<Longrightarrow> takeFullCString xs = (takeCString xs) @ [terminator]" by auto
 lemma takeFullCString_2[simp]:"\<not> isCString xs \<Longrightarrow> takeFullCString xs = takeCString xs" by auto
@@ -97,5 +101,65 @@ definition bad_str :: "string" where
 
 definition empty_str :: "string" where
 "empty_str = [terminator]"
+
+(* TODO: *)
+experiment begin
+
+lemma my5[simp]:" List.find (\<lambda>a. a = terminator) xs = None \<Longrightarrow> (\<And>x. x \<in> set xs \<Longrightarrow> x \<noteq> terminator)"
+ apply (induct xs)
+ apply auto
+oops
+ 
+lemma my4:"List.find (\<lambda>x. x = terminator) xs = None \<Longrightarrow> \<not> isCString xs"
+ apply (induct xs) 
+ apply auto
+oops
+
+thm notI
+thm ccontr
+
+lemma "\<not> (\<forall>xs. \<not> isCString xs)"
+proof (rule ccontr)
+ assume P: "\<not> \<not> (\<forall>xs. \<not> isCString xs)"
+ from P have 0: "\<forall>xs. \<not> isCString xs" by simp
+ fix a
+ from 0 have 1:"\<not> isCString a" by simp
+ from 1 show "False" 
+oops
+
+lemma "\<not> isCString xs \<equiv> \<forall>xs. \<not> isCString xs"
+nitpick
+oops
+
+lemma 
+"\<not> isCString xs \<Longrightarrow> False"
+apply (induct xs)
+apply simp_all
+quickcheck
+oops
+
+lemma
+"\<exists>xs. isCString xs"
+proof (rule ccontr)
+ assume 0:"\<not> (\<exists>xs. isCString xs)"
+ from 0 have 1: "\<forall>xs. \<not> isCString xs" by blast
+ from 1 have 2: "\<not> isCString xs" by simp
+ from 2 have 3: "False"
+ nitpick
+ 
+oops
+
+thm ccontr
+
+lemma
+"\<not> (\<exists>xs. isCString xs)"
+proof (rule ccontr)
+ assume 28:"\<not> \<not> (\<exists>xs. isCString xs)"
+ from 28 have 0: "\<exists>xs. isCString xs" by blast
+ nitpick
+ 
+oops
+
+end
 
 end
