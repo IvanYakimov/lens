@@ -6,11 +6,17 @@ begin
 
 (* --------------------------------------- Definitions ------------------------------------- *)
 
+definition null :: "string" where
+"null = []"
+
 definition terminator :: "char" where 
 "terminator = Char Nibble0 Nibble0"
 
 definition endl :: "char" where
 "endl = Char Nibble0 NibbleA"
+
+definition emptyString :: "string" where
+"emptyString = [terminator]"
 
 definition isCString :: "string \<Rightarrow> bool" where 
 "isCString xs = (terminator \<in> set xs)"
@@ -20,6 +26,9 @@ definition isCLine :: "string \<Rightarrow> bool" where
 
 definition takeCString :: "char list \<Rightarrow> char list" where
 "takeCString xs = (if isCString xs then takeWhile (\<lambda>x. x \<noteq> terminator) xs else [])"
+
+definition takeTrash :: "string \<Rightarrow> string" where
+"takeTrash xs = dropWhile (\<lambda>x. x \<noteq> terminator) xs"
 
 definition takeBuff :: "string \<Rightarrow> string" where
 "takeBuff xs = (if isCString xs then takeCString xs else xs)"
@@ -35,15 +44,25 @@ definition takeCLine :: "string \<Rightarrow> string" where
 lemma cstring_simps[simp]:
 "terminator = Char Nibble0 Nibble0"
 "endl = Char Nibble0 NibbleA"
+"emptyString = [terminator]"
 "isCString xs = (terminator \<in> set xs)" 
 "isCLine xs = (terminator \<in> set xs \<or> endl \<in> set xs)" 
 "takeCString xs = (if isCString xs then takeWhile (\<lambda>x. x \<noteq> terminator) xs else [])"
 "takeFullCString xs = (if isCString xs then takeCString xs @ [terminator] else [])"
 "takeCLine xs = (if isCLine xs then takeWhile (\<lambda>x. x \<noteq> terminator \<and> x \<noteq> endl) xs else [])"
 "takeBuff xs = (if isCString xs then takeCString xs else xs)"
-by (simp_all add: terminator_def endl_def isCString_def isCLine_def takeCString_def takeCLine_def takeBuff_def takeFullCString_def)
+"takeTrash xs = dropWhile (\<lambda>x. x \<noteq> terminator) xs"
+"null = []"
+by (simp_all add: terminator_def endl_def emptyString_def null_def 
+  isCString_def isCLine_def 
+  takeCString_def takeCLine_def takeBuff_def takeFullCString_def takeTrash_def)
 
 (* -------------------------- isCString ------------------------ *)
+lemma shows "\<exists>xs. isCString xs"
+proof
+ show "isCString [terminator]" by simp
+qed
+
 lemma isCString_nil[simp]:
 "isCString [] = False" 
  by simp
@@ -113,11 +132,19 @@ lemma takeBuff_2[simp]:
 
 lemma takeBuff_1[simp]: 
 "\<not> isCString xs \<Longrightarrow> takeBuff xs = xs" 
+ by auto 
+ 
+(* --------------------- takeTrash ------------------- *)
+lemma
+"isCString xs \<Longrightarrow> takeCString xs @ takeTrash xs = xs" 
  by auto
  
 (* --------------- support ----------------- *)
 definition str_hello :: "string" where
-"str_hello = [CHR ''H'', CHR ''e'', CHR ''l'', CHR ''l'', CHR ''o'', CHR ''!'', terminator]"
+"str_hello = [CHR ''H'', CHR ''e'', CHR ''l'', CHR ''l'', CHR ''o'', terminator]"
+
+definition str_world :: "string" where
+"str_world = [CHR '' '', CHR ''w'', CHR ''o'', CHR ''r'', CHR ''l'', CHR ''d'', terminator]"
 
 definition str_el :: "string" where
 "str_el = [CHR ''e'', CHR ''l'', terminator]"
@@ -129,6 +156,7 @@ definition empty_str :: "string" where
 "empty_str = [terminator]"
 
 (* ------------------------------------------ EXPERIMENTAL -------------------------------------------- *)
+value "takeTrash (str_hello @ str_world)" 
 experiment begin
 
 theorem my5[simp]:" List.find (\<lambda>a. a = terminator) xs = None \<Longrightarrow> (\<And>x. x \<in> set xs \<Longrightarrow> x \<noteq> terminator)"
